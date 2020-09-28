@@ -17,9 +17,18 @@ extension ManagedCache {
         return NSFetchRequest<ManagedCache>(entityName: "Cache")
     }
 
-    @NSManaged public var timestamp: Date?
-    @NSManaged public var images: NSOrderedSet?
+    @NSManaged public var timestamp: Date
+    @NSManaged public var images: NSOrderedSet
 
+    var localFeed: [LocalFeedImage] {
+        return images.compactMap { (managedImage) -> LocalFeedImage? in
+            if let image = managedImage as? ManagedFeedImage {
+                return image.localFeedImage
+            } else {
+                return nil
+            }
+        }
+    }
 }
 
 extension ManagedCache : Identifiable {

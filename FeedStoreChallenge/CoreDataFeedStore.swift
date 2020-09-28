@@ -48,14 +48,7 @@ public class CoreDataFeedStore: FeedStore {
                 let fetchedCaches = try context.fetch(ManagedCache.fetchRequest() as NSFetchRequest<ManagedCache>)
 
                 if let managedCache = fetchedCaches.first {
-                    let localFeed = managedCache.images!.compactMap { (managedImage) -> LocalFeedImage? in
-                        if let image = managedImage as? ManagedFeedImage {
-                            return image.localFeedImage
-                        } else {
-                            return nil
-                        }
-                    }
-                    completion(.found(feed: localFeed, timestamp: managedCache.timestamp!))
+                    completion(.found(feed: managedCache.localFeed, timestamp: managedCache.timestamp))
                 } else {
                     completion(.empty)
                 }
