@@ -50,7 +50,7 @@ public class CoreDataFeedStore: FeedStore {
                 if let managedCache = fetchedCaches.first {
                     let localFeed = managedCache.images!.compactMap { (managedImage) -> LocalFeedImage? in
                         if let image = managedImage as? ManagedFeedImage {
-                            return LocalFeedImage(id: image.id!, description: image.imageDescription, location: image.location, url: image.url!)
+                            return image.localFeedImage
                         } else {
                             return nil
                         }

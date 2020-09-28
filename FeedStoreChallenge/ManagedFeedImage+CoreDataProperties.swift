@@ -17,12 +17,15 @@ extension ManagedFeedImage {
         return NSFetchRequest<ManagedFeedImage>(entityName: "FeedImage")
     }
 
-    @NSManaged public var id: UUID?
+    @NSManaged public var id: UUID
     @NSManaged public var imageDescription: String?
     @NSManaged public var location: String?
-    @NSManaged public var url: URL?
+    @NSManaged public var url: URL
     @NSManaged public var cache: ManagedCache?
 
+    var localFeedImage: LocalFeedImage {
+        LocalFeedImage(id: id, description: imageDescription, location: location, url: url)
+    }
 }
 
 extension ManagedFeedImage : Identifiable {
