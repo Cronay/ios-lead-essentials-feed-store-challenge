@@ -28,15 +28,9 @@ public class CoreDataFeedStore: FeedStore {
     public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         context.perform { [context] in
             let cache = ManagedCache(context: context)
+
             cache.timestamp = timestamp
-            let managedFeedArray = feed.map { (localImage) -> ManagedFeedImage in
-                let managedFeedImage = ManagedFeedImage(context: context)
-                managedFeedImage.id = localImage.id
-                managedFeedImage.imageDescription = localImage.description
-                managedFeedImage.location = localImage.location
-                managedFeedImage.url = localImage.url
-                return managedFeedImage
-            }
+            let managedFeedArray = feed.mapToManagedFeedImages(in: context)
             cache.images = NSOrderedSet(array: managedFeedArray)
 
             do {
@@ -99,5 +93,22 @@ private extension NSPersistentContainer {
         if let error = receivedError { throw error }
 
         return persistentContainer
+    }
+}
+
+private extension Array where Element == LocalFeedImage {
+    func mapToManagedFeedImages(in context: NSManagedObjectContext) -> [ManagedFeedImage] {
+        let managedFeedArray = self.map { (localImage) -> ManagedFeedImage in
+            let managedFeedImage = ManagedFeedImage(context: context)
+
+            managedFeedImage.id = localImage.id
+            managedFeedImage.imageDescription = localImage.description
+            managedFeedImage.location = localImage.location
+            managedFeedImage.url = localImage.url
+
+            return managedFeedImage
+        }
+
+        return managedFeedArray
     }
 }
