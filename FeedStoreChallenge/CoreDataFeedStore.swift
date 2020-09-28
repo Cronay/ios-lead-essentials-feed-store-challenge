@@ -15,21 +15,9 @@ public class CoreDataFeedStore: FeedStore {
     private let context: NSManagedObjectContext
 
     public init(storeURL: URL) throws {
-        guard let modelURL = Bundle(for: CoreDataFeedStore.self).url(forResource: "FeedCache", withExtension: "momd"),
-              let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
-            fatalError("Couldn't setup core data stack")
-        }
+        let managedObjectModel = try NSManagedObjectModel.loadFeedStoreModel()
 
-        persistentContainer = NSPersistentContainer(name: "FeedCache", managedObjectModel: managedObjectModel)
-        let storeDescription = NSPersistentStoreDescription(url: storeURL)
-        persistentContainer.persistentStoreDescriptions = [storeDescription]
-
-        var receivedError: Error?
-        persistentContainer.loadPersistentStores { (_, error) in
-            receivedError = error
-        }
-        if let error = receivedError { throw error }
-
+        persistentContainer = try NSPersistentContainer.loadFeedStorePersistentContainer(at: storeURL, with: managedObjectModel)
         context = persistentContainer.newBackgroundContext()
     }
 
@@ -43,5 +31,35 @@ public class CoreDataFeedStore: FeedStore {
 
     public func retrieve(completion: @escaping RetrievalCompletion) {
         completion(.empty)
+    }
+}
+
+private extension NSManagedObjectModel {
+    static func loadFeedStoreModel() throws -> NSManagedObjectModel {
+        guard let modelURL = Bundle(for: CoreDataFeedStore.self).url(forResource: "FeedCache", withExtension: "momd") else {
+            throw NSError(domain: "Could not find managed object model resource", code: 0)
+        }
+
+        guard let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
+            throw NSError(domain: "Could not instantiate managed object model", code: 0)
+        }
+
+        return managedObjectModel
+    }
+}
+
+private extension NSPersistentContainer {
+    static func loadFeedStorePersistentContainer(at storeURL: URL, with managedObjectModel: NSManagedObjectModel) throws -> NSPersistentContainer {
+        let persistentContainer = NSPersistentContainer(name: "FeedCache", managedObjectModel: managedObjectModel)
+        let storeDescription = NSPersistentStoreDescription(url: storeURL)
+        persistentContainer.persistentStoreDescriptions = [storeDescription]
+
+        var receivedError: Error?
+        persistentContainer.loadPersistentStores { (_, error) in
+            receivedError = error
+        }
+        if let error = receivedError { throw error }
+
+        return persistentContainer
     }
 }
