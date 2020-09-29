@@ -27,12 +27,7 @@ public class CoreDataFeedStore: FeedStore {
 
     public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         context.perform { [context] in
-
-            if let fetchedCache = try? context.fetch(ManagedCache.fetchRequest() as NSFetchRequest<ManagedCache>).first {
-                context.delete(fetchedCache)
-            }
-
-            let cache = ManagedCache(context: context)
+            let cache = ManagedCache.getUniqueManagedCache(in: context)
 
             cache.timestamp = timestamp
             let managedFeedArray = feed.mapToManagedFeedImages(in: context)

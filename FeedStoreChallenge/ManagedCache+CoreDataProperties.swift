@@ -20,6 +20,14 @@ extension ManagedCache {
     @NSManaged public var timestamp: Date
     @NSManaged public var images: NSOrderedSet
 
+    static func getUniqueManagedCache(in context: NSManagedObjectContext) -> ManagedCache {
+        if let fetchedCache = try? context.fetch(ManagedCache.fetchRequest() as NSFetchRequest<ManagedCache>).first {
+            context.delete(fetchedCache)
+        }
+
+        return ManagedCache(context: context)
+    }
+
     var localFeed: [LocalFeedImage] {
         return images.compactMap { (managedImage) -> LocalFeedImage? in
             if let image = managedImage as? ManagedFeedImage {
