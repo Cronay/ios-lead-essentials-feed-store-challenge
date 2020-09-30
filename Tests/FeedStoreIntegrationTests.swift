@@ -76,10 +76,14 @@ class FeedStoreIntegrationTests: XCTestCase {
     // - MARK: Helpers
     
     private func makeSUT() -> FeedStore {
-        let userHomeDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        let filePath = userHomeDirectory.appendingPathComponent("feed.store")
-        let feedStore = try! CoreDataFeedStore(storeURL: filePath)
+        let feedStore = try! CoreDataFeedStore(storeURL: storeFileURL())
         return feedStore
+    }
+
+    private func storeFileURL() -> URL {
+        let cachesDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let storeURL = cachesDirectory.appendingPathComponent("feed.store")
+        return storeURL
     }
     
     private func setupEmptyStoreState() {
@@ -91,11 +95,9 @@ class FeedStoreIntegrationTests: XCTestCase {
     }
 
     private func deleteRemainingStoreFileFromTests() {
-        let cachesDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
-        let filePath = cachesDirectory.appendingPathComponent("feed.store")
-        if FileManager.default.fileExists(atPath: filePath.path) {
+        if FileManager.default.fileExists(atPath: storeFileURL().path) {
             do {
-                try FileManager.default.removeItem(at: filePath)
+                try FileManager.default.removeItem(at: storeFileURL())
             } catch {
                 XCTFail("Couldn't remove feed store file at specified path")
             }
