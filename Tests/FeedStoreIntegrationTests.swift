@@ -83,11 +83,22 @@ class FeedStoreIntegrationTests: XCTestCase {
     }
     
     private func setupEmptyStoreState() {
-
+        deleteRemainingStoreFileFromTests()
     }
 
     private func undoStoreSideEffects() {
-
+        deleteRemainingStoreFileFromTests()
     }
-    
+
+    private func deleteRemainingStoreFileFromTests() {
+        let cachesDirectory = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+        let filePath = cachesDirectory.appendingPathComponent("feed.store")
+        if FileManager.default.fileExists(atPath: filePath.path) {
+            do {
+                try FileManager.default.removeItem(at: filePath)
+            } catch {
+                XCTFail("Couldn't remove feed store file at specified path")
+            }
+        }
+    }
 }
