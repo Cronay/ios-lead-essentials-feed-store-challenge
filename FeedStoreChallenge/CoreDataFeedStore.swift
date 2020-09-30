@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-public class CoreDataFeedStore: FeedStore {
+public final class CoreDataFeedStore: FeedStore {
 
     private let persistentContainer: NSPersistentContainer
     private let context: NSManagedObjectContext
