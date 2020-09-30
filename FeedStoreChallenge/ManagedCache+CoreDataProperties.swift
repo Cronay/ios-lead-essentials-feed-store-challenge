@@ -14,7 +14,9 @@ import CoreData
 extension ManagedCache {
 
     @nonobjc public class func fetchRequest() -> NSFetchRequest<ManagedCache> {
-        return NSFetchRequest<ManagedCache>(entityName: "Cache")
+        let request = NSFetchRequest<ManagedCache>(entityName: "Cache")
+        request.returnsObjectsAsFaults = false
+        return request
     }
 
     @NSManaged public var timestamp: Date
