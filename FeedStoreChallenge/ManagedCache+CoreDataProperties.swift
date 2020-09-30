@@ -7,23 +7,22 @@
 //
 //
 
-import Foundation
 import CoreData
 
 
 extension ManagedCache {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<ManagedCache> {
+    @nonobjc public class func fetchCache(in context: NSManagedObjectContext) throws -> ManagedCache? {
         let request = NSFetchRequest<ManagedCache>(entityName: "Cache")
         request.returnsObjectsAsFaults = false
-        return request
+        return try context.fetch(request).first
     }
 
     @NSManaged public var timestamp: Date
     @NSManaged public var images: NSOrderedSet
 
     static func getUniqueManagedCache(in context: NSManagedObjectContext) -> ManagedCache {
-        if let fetchedCache = try? context.fetch(ManagedCache.fetchRequest() as NSFetchRequest<ManagedCache>).first {
+        if let fetchedCache = try? fetchCache(in: context) {
             context.delete(fetchedCache)
         }
 

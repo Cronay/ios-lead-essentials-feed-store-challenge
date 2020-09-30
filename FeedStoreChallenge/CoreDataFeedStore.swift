@@ -24,8 +24,8 @@ public class CoreDataFeedStore: FeedStore {
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
         context.perform { [context] in
             do {
-                let managedCaches = try context.fetch(ManagedCache.fetchRequest() as NSFetchRequest<ManagedCache>)
-                try managedCaches.map(context.delete).forEach(context.save)
+                let managedCache = try ManagedCache.fetchCache(in: context)
+                try managedCache.map(context.delete).map(context.save)
                 completion(nil)
             } catch {
                 completion(error)
@@ -53,9 +53,9 @@ public class CoreDataFeedStore: FeedStore {
     public func retrieve(completion: @escaping RetrievalCompletion) {
         context.perform { [context] in
             do {
-                let fetchedCaches = try context.fetch(ManagedCache.fetchRequest() as NSFetchRequest<ManagedCache>)
+                let fetchedCache = try ManagedCache.fetchCache(in: context)
 
-                if let managedCache = fetchedCaches.first {
+                if let managedCache = fetchedCache {
                     completion(.found(feed: managedCache.localFeed, timestamp: managedCache.timestamp))
                 } else {
                     completion(.empty)
