@@ -11,6 +11,6 @@ import Foundation
 import CoreData
 
 @objc(ManagedFeedImage)
-public class ManagedFeedImage: NSManagedObject {
+internal class ManagedFeedImage: NSManagedObject {
 
 }

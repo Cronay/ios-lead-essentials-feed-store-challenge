@@ -13,21 +13,13 @@ import CoreData
 
 extension ManagedFeedImage {
 
-    @nonobjc public class func fetchRequest() -> NSFetchRequest<ManagedFeedImage> {
-        return NSFetchRequest<ManagedFeedImage>(entityName: "FeedImage")
-    }
-
-    @NSManaged public var id: UUID
-    @NSManaged public var imageDescription: String?
-    @NSManaged public var location: String?
-    @NSManaged public var url: URL
-    @NSManaged public var cache: ManagedCache?
+    @NSManaged internal var id: UUID
+    @NSManaged internal var imageDescription: String?
+    @NSManaged internal var location: String?
+    @NSManaged internal var url: URL
+    @NSManaged internal var cache: ManagedCache?
 
     var localFeedImage: LocalFeedImage {
         LocalFeedImage(id: id, description: imageDescription, location: location, url: url)
     }
-}
-
-extension ManagedFeedImage : Identifiable {
-
 }

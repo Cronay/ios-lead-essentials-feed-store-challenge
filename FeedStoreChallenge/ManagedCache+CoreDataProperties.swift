@@ -12,16 +12,16 @@ import CoreData
 
 extension ManagedCache {
 
-    @nonobjc public class func fetchCache(in context: NSManagedObjectContext) throws -> ManagedCache? {
+    @nonobjc internal class func fetchCache(in context: NSManagedObjectContext) throws -> ManagedCache? {
         let request = NSFetchRequest<ManagedCache>(entityName: "Cache")
         request.returnsObjectsAsFaults = false
         return try context.fetch(request).first
     }
 
-    @NSManaged public var timestamp: Date
-    @NSManaged public var images: NSOrderedSet
+    @NSManaged internal var timestamp: Date
+    @NSManaged internal var images: NSOrderedSet
 
-    static func getUniqueManagedCache(in context: NSManagedObjectContext) -> ManagedCache {
+    internal static func getUniqueManagedCache(in context: NSManagedObjectContext) -> ManagedCache {
         if let fetchedCache = try? fetchCache(in: context) {
             context.delete(fetchedCache)
         }
@@ -29,7 +29,7 @@ extension ManagedCache {
         return ManagedCache(context: context)
     }
 
-    var localFeed: [LocalFeedImage] {
+    internal var localFeed: [LocalFeedImage] {
         return images.compactMap { (managedImage) -> LocalFeedImage? in
             if let image = managedImage as? ManagedFeedImage {
                 return image.localFeedImage
@@ -38,8 +38,4 @@ extension ManagedCache {
             }
         }
     }
-}
-
-extension ManagedCache : Identifiable {
-
 }
