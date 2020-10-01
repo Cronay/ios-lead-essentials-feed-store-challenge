@@ -90,6 +90,15 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 }
 
 private class FailingContext: NSManagedObjectContextProtocol {
+
+    let enableRetrieveCommand: Bool
+
+    init(enableRetrieveCommand: Bool = false) {
+        self.enableRetrieveCommand = enableRetrieveCommand
+    }
+
+    var actualContext: NSManagedObjectContext?
+
     func perform(_ block: @escaping () -> Void) {
         block()
     }
@@ -103,7 +112,11 @@ private class FailingContext: NSManagedObjectContextProtocol {
     }
 
     func fetch<T>(_ request: NSFetchRequest<T>) throws -> [T] where T : NSFetchRequestResult {
-        throw NSError(domain: "Fetch failed", code: 0)
+        if enableRetrieveCommand {
+            return (try actualContext?.fetch(request))!
+        } else {
+            throw NSError(domain: "Fetch failed", code: 0)
+        }
     }
 }
 
@@ -120,5 +133,19 @@ extension FeedStoreChallengeTests: FailableRetrieveFeedStoreSpecs {
 
         assertThatRetrieveHasNoSideEffectsOnFailure(on: sut)
     }
+}
 
+extension FeedStoreChallengeTests: FailableInsertFeedStoreSpecs {
+
+    func test_insert_deliversErrorOnInsertionError() {
+        let sut = makeSUT(customContext: FailingContext())
+
+        assertThatInsertDeliversErrorOnInsertionError(on: sut)
+    }
+
+    func test_insert_hasNoSideEffectsOnInsertionError() {
+        let sut = makeSUT(customContext: FailingContext(enableRetrieveCommand: true))
+
+        assertThatInsertHasNoSideEffectsOnInsertionError(on: sut)
+    }
 }

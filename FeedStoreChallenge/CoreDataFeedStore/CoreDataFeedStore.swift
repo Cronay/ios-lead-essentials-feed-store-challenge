@@ -10,18 +10,29 @@ import Foundation
 import CoreData
 
 public protocol NSManagedObjectContextProtocol {
+    var actualContext: NSManagedObjectContext? { get set }
+
     func perform(_ block: @escaping () -> Void)
     func delete(_ object: NSManagedObject)
     func save() throws
     func fetch<T>(_ request: NSFetchRequest<T>) throws -> [T] where T : NSFetchRequestResult
 }
 
-extension NSManagedObjectContext: NSManagedObjectContextProtocol {}
+extension NSManagedObjectContext: NSManagedObjectContextProtocol {
+    public var actualContext: NSManagedObjectContext? {
+        get {
+            return nil
+        }
+        set {
+
+        }
+    }
+}
 
 public final class CoreDataFeedStore: FeedStore {
 
     private let persistentContainer: NSPersistentContainer
-    private let context: NSManagedObjectContextProtocol
+    private var context: NSManagedObjectContextProtocol
 
     public init(storeURL: URL, customContext: NSManagedObjectContextProtocol? = nil) throws {
         let managedObjectModel = try NSManagedObjectModel.loadFeedStoreModel()
@@ -29,6 +40,7 @@ public final class CoreDataFeedStore: FeedStore {
         persistentContainer = try NSPersistentContainer.loadFeedStorePersistentContainer(at: storeURL, with: managedObjectModel)
         if let customContext = customContext {
             context = customContext
+            context.actualContext = persistentContainer.newBackgroundContext()
         } else {
             context = persistentContainer.newBackgroundContext()
         }
@@ -48,13 +60,13 @@ public final class CoreDataFeedStore: FeedStore {
 
     public func insert(_ feed: [LocalFeedImage], timestamp: Date, completion: @escaping InsertionCompletion) {
         context.perform { [context] in
-            let cache = ManagedCache.getUniqueManagedCache(in: context)
-
-            cache.timestamp = timestamp
-            let managedFeedArray = feed.mapToManagedFeedImages(in: context)
-            cache.images = NSOrderedSet(array: managedFeedArray)
-
             do {
+                let cache = try ManagedCache.getUniqueManagedCache(in: context)
+
+                cache.timestamp = timestamp
+                let managedFeedArray = feed.mapToManagedFeedImages(in: context)
+                cache.images = NSOrderedSet(array: managedFeedArray)
+
                 try context.save()
                 completion(nil)
             } catch {

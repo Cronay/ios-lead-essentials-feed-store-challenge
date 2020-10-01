@@ -21,11 +21,11 @@ extension ManagedCache {
     @NSManaged internal var timestamp: Date
     @NSManaged internal var images: NSOrderedSet
 
-    internal static func getUniqueManagedCache(in context: NSManagedObjectContextProtocol) -> ManagedCache {
-        if let fetchedCache = try? fetchCache(in: context) {
-            context.delete(fetchedCache)
-        }
+    internal static func getUniqueManagedCache(in context: NSManagedObjectContextProtocol) throws -> ManagedCache {
+        let cache = try fetchCache(in: context)
+        cache.map(context.delete)
 
+        if !(context is NSManagedObjectContext) { throw NSError(domain: "Only can return managed cache when it is actually a cache", code: 0)}
         return ManagedCache(context: context as! NSManagedObjectContext)
     }
 
