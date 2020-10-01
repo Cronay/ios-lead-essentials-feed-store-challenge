@@ -12,7 +12,7 @@ import CoreData
 
 extension ManagedCache {
 
-    @nonobjc internal class func fetchCache(in context: NSManagedObjectContext) throws -> ManagedCache? {
+    @nonobjc internal class func fetchCache(in context: NSManagedObjectContextProtocol) throws -> ManagedCache? {
         let request = NSFetchRequest<ManagedCache>(entityName: "Cache")
         request.returnsObjectsAsFaults = false
         return try context.fetch(request).first
@@ -21,12 +21,12 @@ extension ManagedCache {
     @NSManaged internal var timestamp: Date
     @NSManaged internal var images: NSOrderedSet
 
-    internal static func getUniqueManagedCache(in context: NSManagedObjectContext) -> ManagedCache {
+    internal static func getUniqueManagedCache(in context: NSManagedObjectContextProtocol) -> ManagedCache {
         if let fetchedCache = try? fetchCache(in: context) {
             context.delete(fetchedCache)
         }
 
-        return ManagedCache(context: context)
+        return ManagedCache(context: context as! NSManagedObjectContext)
     }
 
     internal var localFeed: [LocalFeedImage] {

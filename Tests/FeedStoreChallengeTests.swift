@@ -81,11 +81,44 @@ class FeedStoreChallengeTests: XCTestCase, FeedStoreSpecs {
 	
 	// - MARK: Helpers
 	
-    private func makeSUT(file: StaticString = #filePath, line: UInt = #line) -> FeedStore {
+    private func makeSUT(customContext: NSManagedObjectContextProtocol? = nil, file: StaticString = #filePath, line: UInt = #line) -> FeedStore {
         let storeURL = URL(fileURLWithPath: "/dev/null")
-		let sut = try! CoreDataFeedStore(storeURL: storeURL)
+		let sut = try! CoreDataFeedStore(storeURL: storeURL, customContext: customContext)
         trackForMemoryLeaks(sut, file: file, line: line)
         return sut
 	}
-	
+}
+
+private class FailingContext: NSManagedObjectContextProtocol {
+    func perform(_ block: @escaping () -> Void) {
+        block()
+    }
+
+    func delete(_ object: NSManagedObject) {
+
+    }
+
+    func save() throws {
+        throw NSError(domain: "Save failed", code: 0)
+    }
+
+    func fetch<T>(_ request: NSFetchRequest<T>) throws -> [T] where T : NSFetchRequestResult {
+        throw NSError(domain: "Fetch failed", code: 0)
+    }
+}
+
+extension FeedStoreChallengeTests: FailableRetrieveFeedStoreSpecs {
+
+    func test_retrieve_deliversFailureOnRetrievalError() {
+        let sut = makeSUT(customContext: FailingContext())
+
+        assertThatRetrieveDeliversFailureOnRetrievalError(on: sut)
+    }
+
+    func test_retrieve_hasNoSideEffectsOnFailure() {
+//        let sut = makeSUT(testSpecificInvalidConfiguration())
+//
+//        assertThatRetrieveHasNoSideEffectsOnFailure(on: sut)
+    }
+
 }

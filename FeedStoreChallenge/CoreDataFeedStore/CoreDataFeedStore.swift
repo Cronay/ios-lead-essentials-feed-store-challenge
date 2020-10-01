@@ -9,16 +9,29 @@
 import Foundation
 import CoreData
 
+public protocol NSManagedObjectContextProtocol {
+    func perform(_ block: @escaping () -> Void)
+    func delete(_ object: NSManagedObject)
+    func save() throws
+    func fetch<T>(_ request: NSFetchRequest<T>) throws -> [T] where T : NSFetchRequestResult
+}
+
+extension NSManagedObjectContext: NSManagedObjectContextProtocol {}
+
 public final class CoreDataFeedStore: FeedStore {
 
     private let persistentContainer: NSPersistentContainer
-    private let context: NSManagedObjectContext
+    private let context: NSManagedObjectContextProtocol
 
-    public init(storeURL: URL) throws {
+    public init(storeURL: URL, customContext: NSManagedObjectContextProtocol? = nil) throws {
         let managedObjectModel = try NSManagedObjectModel.loadFeedStoreModel()
 
         persistentContainer = try NSPersistentContainer.loadFeedStorePersistentContainer(at: storeURL, with: managedObjectModel)
-        context = persistentContainer.newBackgroundContext()
+        if let customContext = customContext {
+            context = customContext
+        } else {
+            context = persistentContainer.newBackgroundContext()
+        }
     }
 
     public func deleteCachedFeed(completion: @escaping DeletionCompletion) {
@@ -98,9 +111,9 @@ private extension NSPersistentContainer {
 }
 
 private extension Array where Element == LocalFeedImage {
-    func mapToManagedFeedImages(in context: NSManagedObjectContext) -> [ManagedFeedImage] {
+    func mapToManagedFeedImages(in context: NSManagedObjectContextProtocol) -> [ManagedFeedImage] {
         let managedFeedArray = self.map { (localImage) -> ManagedFeedImage in
-            let managedFeedImage = ManagedFeedImage(context: context)
+            let managedFeedImage = ManagedFeedImage(context: context as! NSManagedObjectContext)
 
             managedFeedImage.id = localImage.id
             managedFeedImage.imageDescription = localImage.description
