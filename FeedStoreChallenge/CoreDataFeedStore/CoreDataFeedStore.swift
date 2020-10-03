@@ -15,7 +15,9 @@ public final class CoreDataFeedStore: FeedStore {
     private let context: NSManagedObjectContext
 
     public init(storeURL: URL) throws {
-        let managedObjectModel = try NSManagedObjectModel.loadFeedStoreModel()
+        guard let managedObjectModel = NSManagedObjectModel.model else {
+            throw NSError(domain: "Couldn't load managed object model", code: 0)
+        }
 
         persistentContainer = try NSPersistentContainer.loadFeedStorePersistentContainer(at: storeURL, with: managedObjectModel)
         context = persistentContainer.newBackgroundContext()
@@ -68,17 +70,13 @@ public final class CoreDataFeedStore: FeedStore {
 }
 
 private extension NSManagedObjectModel {
-    static func loadFeedStoreModel() throws -> NSManagedObjectModel {
+    static let model: NSManagedObjectModel? = {
         guard let modelURL = Bundle(for: CoreDataFeedStore.self).url(forResource: "FeedCache", withExtension: "momd") else {
-            throw NSError(domain: "Could not find managed object model resource", code: 0)
+            return nil
         }
 
-        guard let managedObjectModel = NSManagedObjectModel(contentsOf: modelURL) else {
-            throw NSError(domain: "Could not instantiate managed object model", code: 0)
-        }
-
-        return managedObjectModel
-    }
+        return NSManagedObjectModel(contentsOf: modelURL)
+    }()
 }
 
 private extension NSPersistentContainer {
